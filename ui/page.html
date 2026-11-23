@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Mono</title>
+<meta name="color-scheme" content="dark">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:#0b0b0b;color:#ededed;font:13.5px "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+a{color:inherit}
+.wrap{display:flex;min-height:100vh}
+nav{width:220px;flex:none;padding:28px 14px;border-right:1px solid #1b1b1b;position:sticky;top:0;height:100vh}
+nav .logo{font:600 15px "Segoe UI Variable Display","Segoe UI",sans-serif;letter-spacing:.02em;padding:0 12px 22px;color:#fff}
+nav a{display:block;padding:8px 12px;border-radius:8px;color:#8a8a8a;text-decoration:none;margin-bottom:2px}
+nav a:hover{background:#141414;color:#ddd}
+nav a.on{background:#1a1a1a;color:#fff}
+main{flex:1;min-width:0;padding:34px 48px 80px;max-width:900px}
+h1{font:600 22px "Segoe UI Variable Display","Segoe UI",sans-serif;margin-bottom:22px;letter-spacing:-.2px}
+h2{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#5a5a5a;margin:34px 0 10px}
+.card{background:#111;border:1px solid #1d1d1d;border-radius:12px;padding:4px 0;margin-bottom:12px}
+.line{display:flex;align-items:center;gap:14px;padding:12px 18px;min-height:52px}
+.line+.line{border-top:1px solid #1a1a1a}
+.line .grow{flex:1;min-width:0}
+.line .sub{color:#6b6b6b;font-size:12px;margin-top:3px}
+button,select,input[type=search],input[type=text]{font:inherit;color:#ededed;background:#1c1c1c;border:1px solid #2a2a2a;border-radius:8px;height:32px;padding:0 14px;outline:0}
+button{cursor:pointer;white-space:nowrap}
+button:hover{background:#262626;border-color:#353535}
+button.pri{background:#ededed;color:#000;border-color:#ededed}
+button.pri:hover{background:#fff}
+button.ghost{background:transparent;border-color:transparent;color:#8a8a8a;padding:0 8px}
+button.ghost:hover{color:#fff;background:#1c1c1c}
+select{padding:0 10px}
+input[type=search]{width:100%;height:38px;margin-bottom:18px;background:#111;border-color:#1f1f1f}
+input:focus,select:focus{border-color:#4a4a4a}
+.sw{width:38px;height:22px;border-radius:11px;background:#2a2a2a;position:relative;cursor:pointer;flex:none;transition:background .15s}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#777;transition:all .15s}
+.sw.on{background:#ededed}
+.sw.on::after{left:19px;background:#000}
+.list .it{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:8px}
+.list .it:hover{background:#121212}
+.list .it img{width:16px;height:16px;flex:none}
+.list .it .tt{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none;color:#e5e5e5}
+.list .it .uu{flex:1 1 0;min-width:0;color:#5f5f5f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
+.list .it .tm{color:#5a5a5a;font-size:12px;width:44px;flex:none;font-variant-numeric:tabular-nums}
+.list .it .del{opacity:0}
+.list .it:hover .del{opacity:1}
+.day{font-size:12px;font-weight:600;color:#7a7a7a;margin:22px 12px 6px}
+.steps{counter-reset:s;padding:6px 18px 14px}
+.steps li{list-style:none;counter-increment:s;position:relative;padding:7px 0 7px 34px;color:#bdbdbd}
+.steps li::before{content:counter(s);position:absolute;left:0;top:6px;width:22px;height:22px;border-radius:50%;background:#1f1f1f;color:#ededed;font-size:11.5px;display:grid;place-items:center}
+code{background:#1c1c1c;border:1px solid #262626;border-radius:5px;padding:1px 6px;font:12px Consolas,monospace;color:#ededed;user-select:all}
+.note{color:#9a9a9a;font-size:12.5px;padding:0 18px 14px}
+.ok{color:#ededed}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#ededed;color:#000;padding:10px 18px;border-radius:10px;opacity:0;transition:all .25s;pointer-events:none;font-weight:500}
+#toast.on{opacity:1;transform:translateX(-50%)}
+.big{font:200 34px "Segoe UI Variable Display","Segoe UI",sans-serif;letter-spacing:-1px}
+.muted{color:#6b6b6b}
+.welcome{background:#ededed;color:#000;border-radius:14px;padding:22px 24px;margin-bottom:26px}
+.welcome b{font-size:16px;display:block;margin-bottom:6px}
+.pw{font:12.5px Consolas,monospace;color:#ededed;user-select:all}
+.hide{display:none}
+[contenteditable]{outline:0;border-radius:5px;padding:1px 4px;margin:-1px -4px}
+[contenteditable]:focus{background:#1c1c1c}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="logo">Mono</div>
+    <a href="/history" data-p="history">История</a>
+    <a href="/bookmarks" data-p="bookmarks">Закладки</a>
+    <a href="/passwords" data-p="passwords">Пароли</a>
+    <a href="/settings" data-p="settings">Настройки</a>
+  </nav>
+  <main id="main"></main>
+</div>
+<div id="toast"></div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
+const ico = u => `https://icons.duckduckgo.com/ip3/${host(u)}.ico`;
+const page = location.pathname.slice(1) || 'settings';
+document.querySelectorAll('nav a').forEach(a => a.classList.toggle('on', a.dataset.p === page));
+const waiters = {};
+function call(op, args) {
+  return new Promise(res => { (waiters[op] = waiters[op] || []).push(res); chrome.webview.postMessage(Object.assign({ t: 'page', op }, args || {})); });
+}
+chrome.webview.addEventListener('message', e => {
+  const m = e.data;
+  if (m.t !== 'page') return;
+  if (m.op === 'note') { toast(m.data === 'lists' ? 'Списки фильтров обновлены' : m.data); if (page === 'settings') settings(); return; }
+  const w = waiters[m.op];
+  if (w && w.length) w.shift()(m.data);
+});
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 3200); }
+const main = $('#main');
+
+// ---------------------------------------------------------------- история
+async function history() {
+  document.title = 'История';
+  main.innerHTML = `<h1>История</h1><input type="search" id="q" placeholder="Поиск по истории"><div class="list" id="list"></div>
+    <div style="margin-top:24px"><button id="clear">Очистить всю историю</button></div>`;
+  let off = 0, q = '', busy = false, done = false, lastDay = '';
+  const list = $('#list');
+  async function more(reset) {
+    if (busy || (done && !reset)) return;
+    busy = true;
+    if (reset) { off = 0; done = false; lastDay = ''; list.innerHTML = ''; }
+    const rows = await call('history', { q, offset: off });
+    off += rows.length; done = rows.length < 200;
+    let html = '';
+    for (const r of rows) {
+      const d = new Date(r.time * 1000);
+      const day = d.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+      if (day !== lastDay) { html += `<div class="day">${day}</div>`; lastDay = day; }
+      html += `<div class="it"><span class="tm">${d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span><img src="${ico(r.url)}" onerror="this.style.visibility='hidden'">
+        <a class="tt" href="${esc(r.url)}">${esc(r.title || host(r.url))}</a><span class="uu">${esc(host(r.url))}</span>
+        <button class="ghost del" data-url="${esc(r.url)}">Удалить</button></div>`;
+    }
+    list.insertAdjacentHTML('beforeend', html || (off ? '' : '<p class="muted" style="padding:12px">Пусто</p>'));
+    busy = false;
+  }
+  let t;
+  $('#q').oninput = e => { clearTimeout(t); t = setTimeout(() => { q = e.target.value; more(true); }, 150); };
+  list.onclick = async e => {
+    const b = e.target.closest('.del');
+    if (b) { await call('delhist', { url: b.dataset.url }); b.closest('.it').remove(); }
+  };
+  $('#clear').onclick = async e => {
+    if (e.target.dataset.sure) { await call('clearhist'); more(true); toast('История очищена'); }
+    else { e.target.dataset.sure = 1; e.target.textContent = 'Точно очистить? Нажмите ещё раз'; }
+  };
+  addEventListener('scroll', () => { if (innerHeight + scrollY > document.body.scrollHeight - 400) more(); });
+  more(true);
+}
+
+// ---------------------------------------------------------------- закладки
+async function bookmarks() {
+  document.title = 'Закладки';
+  const bms = await call('bookmarks');
+  const groups = new Map();
+  for (const b of bms) { const f = b.folder || 'Панель закладок'; if (!groups.has(f)) groups.set(f, []); groups.get(f).push(b); }
+  main.innerHTML = `<h1>Закладки</h1><input type="search" id="q" placeholder="Поиск по закладкам"><div id="groups">` +
+    [...groups].map(([f, list]) => `<div class="grp"><h2>${esc(f)}</h2><div class="list">${list.map(b => `
+      <div class="it" data-s="${esc((b.title + ' ' + b.url).toLowerCase())}"><img src="${ico(b.url)}" onerror="this.style.visibility='hidden'">
+      <a class="tt" href="${esc(b.url)}" data-id="${b.id}">${esc(b.title || b.url)}</a><span class="uu">${esc(host(b.url))}</span>
+      <button class="ghost del" data-ren="${b.id}">Переименовать</button><button class="ghost del" data-del="${b.id}">Удалить</button></div>`).join('')}</div></div>`).join('') +
+    `</div>` + (bms.length ? '' : '<p class="muted">Закладок пока нет. Нажмите ☆ в адресной строке или Ctrl+D.</p>');
+  $('#q').oninput = e => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('.it').forEach(it => it.classList.toggle('hide', !it.dataset.s.includes(q)));
+    document.querySelectorAll('.grp').forEach(g => g.classList.toggle('hide', !g.querySelector('.it:not(.hide)')));
+  };
+  main.onclick = async e => {
+    const d = e.target.closest('[data-del]');
+    if (d) { await call('delbm', { id: +d.dataset.del }); d.closest('.it').remove(); return; }
+    const r = e.target.closest('[data-ren]');
+    if (r) {
+      const a = r.closest('.it').querySelector('.tt');
+      a.contentEditable = 'true'; a.focus();
+      document.getSelection().selectAllChildren(a);
+      const done = async () => { a.contentEditable = 'false'; await call('renamebm', { id: +a.dataset.id, title: a.textContent.trim() }); };
+      a.onblur = done;
+      a.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); a.blur(); } };
+      a.onclick = ev => { if (a.isContentEditable) ev.preventDefault(); };
+    }
+  };
+}
+
+// ---------------------------------------------------------------- пароли
+async function passwords() {
+  document.title = 'Пароли';
+  const list = await call('logins');
+  main.innerHTML = `<h1>Пароли</h1><p class="muted" style="margin:-10px 0 18px">Хранятся только на этом компьютере, зашифрованы ключом вашей учётной записи Windows.</p>
+    <input type="search" id="q" placeholder="Поиск по сайтам и логинам">
+    <div class="list">${list.map(l => `<div class="it" data-s="${esc((l.host + ' ' + l.user).toLowerCase())}">
+      <img src="https://icons.duckduckgo.com/ip3/${esc(l.host)}.ico" onerror="this.style.visibility='hidden'">
+      <span class="tt" style="width:220px;flex:none">${esc(l.host)}</span><span class="uu" style="color:#bdbdbd">${esc(l.user || '—')}</span>
+      <span class="pw" data-p="${l.id}">••••••••</span>
+      <button class="ghost" data-show="${l.id}">Показать</button><button class="ghost del" data-del="${l.id}">Удалить</button></div>`).join('')}</div>` +
+    (list.length ? '' : `<p class="muted">Паролей пока нет. <a href="/settings#import">Перенести из Chrome</a></p>`);
+  $('#q').oninput = e => { const q = e.target.value.toLowerCase(); document.querySelectorAll('.it').forEach(it => it.classList.toggle('hide', !it.dataset.s.includes(q))); };
+  main.onclick = async e => {
+    const s = e.target.closest('[data-show]');
+    if (s) {
+      const el = main.querySelector(`[data-p="${s.dataset.show}"]`);
+      if (s.textContent === 'Скрыть') { el.textContent = '••••••••'; s.textContent = 'Показать'; return; }
+      const r = await call('reveal', { id: +s.dataset.show });
+      el.textContent = r.p || ''; s.textContent = 'Скрыть';
+      return;
+    }
+    const d = e.target.closest('[data-del]');
+    if (d) {
+      if (!d.dataset.sure) { d.dataset.sure = 1; d.textContent = 'Точно?'; return; }
+      await call('dellogin', { id: +d.dataset.del }); d.closest('.it').remove();
+    }
+  };
+}
+
+// ---------------------------------------------------------------- настройки
+async function settings() {
+  document.title = 'Настройки';
+  const s = await call('settings');
+  const welcome = location.hash === '#welcome';
+  main.innerHTML = `
+    ${welcome ? `<div class="welcome"><b>Добро пожаловать в Mono</b>${s.chrome ? 'Закладки и история из Chrome уже переносятся в фоне. Осталось перенести пароли — это две минуты, инструкция ниже.' : 'Chrome не найден — можно начать с чистого листа.'}</div>` : ''}
+    <h1>Настройки</h1>
+
+    <h2>Поиск</h2>
+    <div class="card"><div class="line"><div class="grow">Поисковая система<div class="sub">Для запросов из адресной строки</div></div>
+      <select id="search">${s.engines.map(e => `<option value="${e.key}"${e.key === s.search ? ' selected' : ''}>${e.name}</option>`).join('')}</select></div></div>
+
+    <h2>Блокировка рекламы</h2>
+    <div class="card">
+      <div class="line"><div class="grow">Блокировать рекламу и трекеры<div class="sub">EasyList, EasyPrivacy, RU AdList, фильтры uBlock Origin · правил: ${s.rules.toLocaleString('ru-RU')}</div></div><div class="sw${s.adblock ? ' on' : ''}" id="adb"></div></div>
+      <div class="line"><div class="grow"><span class="big">${s.blocked.toLocaleString('ru-RU')}</span><div class="sub">запросов заблокировано всего</div></div><button id="upd">Обновить списки</button></div>
+      ${s.allow.length ? `<div class="line"><div class="grow">Отключено для сайтов<div class="sub">${s.allow.map(a => `<span style="display:inline-flex;align-items:center;gap:4px;margin:6px 8px 0 0;color:#ccc">${esc(a)} <button class="ghost" data-unallow="${esc(a)}" style="height:22px">×</button></span>`).join('')}</div></div></div>` : ''}
+    </div>
+
+    <h2 id="import">Перенос из Chrome</h2>
+    <div class="card">
+      <div class="line"><div class="grow">Закладки и история<div class="sub">${s.chrome ? (s.imported ? `Перенесено. Закладок сейчас: ${s.bookmarks}` : 'Chrome найден на этом компьютере') : 'Chrome не найден'}</div></div>
+        <button id="imb"${s.chrome ? '' : ' disabled'}>Закладки</button><button id="imh"${s.chrome ? '' : ' disabled'}>История</button></div>
+      <div class="line" style="align-items:flex-start;padding-bottom:4px"><div class="grow">Пароли<div class="sub">Сохранено в Mono: ${s.logins}. Новый Chrome шифрует пароли так, что их может прочитать только он сам, поэтому их нужно выгрузить вручную:</div></div></div>
+      <ol class="steps">
+        <li>Откройте в Chrome адрес <code>chrome://password-manager/settings</code></li>
+        <li>В пункте «Экспорт паролей» нажмите <b>Скачать файл</b> и подтвердите паролем Windows</li>
+        <li>Выберите скачанный файл <b>«Пароли Chrome.csv»</b>:&nbsp; <button class="pri" id="pick">Выбрать файл…</button><input type="file" id="file" accept=".csv,text/csv" class="hide"></li>
+        <li>После импорта <b>удалите этот CSV</b> — в нём пароли открытым текстом</li>
+      </ol>
+      <div class="note" id="pwres"></div>
+    </div>
+
+    <h2>Данные</h2>
+    <div class="card">
+      <div class="line"><div class="grow">Кэш<div class="sub">Картинки и файлы сайтов. Входы на сайты сохранятся</div></div><button data-clear="cache">Очистить</button></div>
+      <div class="line"><div class="grow">Cookies и данные сайтов<div class="sub">Выйдете из всех аккаунтов</div></div><button data-clear="cookies">Очистить</button></div>
+    </div>
+
+    <h2>О браузере</h2>
+    <div class="card"><div class="line"><div class="grow">Mono ${esc(s.version)}<div class="sub">Rust · движок Chromium ${esc(s.engine)} (WebView2)</div></div></div></div>`;
+
+  $('#search').onchange = e => { call('set', { k: 'search', v: e.target.value }); toast('Поиск: ' + e.target.selectedOptions[0].text); };
+  $('#adb').onclick = e => { const on = !e.target.classList.contains('on'); e.target.classList.toggle('on', on); call('set', { k: 'adblock', v: on }); toast(on ? 'Блокировка включена' : 'Блокировка выключена'); };
+  $('#upd').onclick = e => { e.target.disabled = true; e.target.textContent = 'Обновляю…'; call('updatelists'); };
+  $('#imb').onclick = () => { call('import', { what: 'bookmarks' }); toast('Переношу закладки…'); };
+  $('#imh').onclick = () => { call('import', { what: 'history' }); toast('Переношу историю…'); };
+  $('#pick').onclick = () => $('#file').click();
+  $('#file').onchange = async e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = await call('importpw', { csv: await f.text() });
+    $('#pwres').innerHTML = r.err ? esc(r.err) : `<span class="ok">Готово: перенесено паролей — ${r.ok}.</span> Теперь удалите файл «${esc(f.name)}» из папки загрузок.`;
+    e.target.value = '';
+  };
+  main.querySelectorAll('[data-clear]').forEach(b => b.onclick = async () => {
+    if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = 'Точно?'; return; }
+    await call('clear', { what: b.dataset.clear }); b.textContent = 'Очищено'; b.disabled = true;
+  });
+  main.querySelectorAll('[data-unallow]').forEach(b => b.onclick = async () => { await call('set', { k: 'unallow', v: b.dataset.unallow }); settings(); });
+  if (location.hash === '#import') $('#import').scrollIntoView();
+}
+
+({ history, bookmarks, passwords, settings }[page] || settings)();
+addEventListener('hashchange', () => { const el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView({ behavior: 'smooth' }); });
+</script>
+</body>
+</html>

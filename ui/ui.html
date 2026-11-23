@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<style>
+:root{--bg:#0a0a0a;--bar:#171717;--hover:#121212;--fg:#ededed;--dim:#8a8a8a;--mut:#5c5c5c;--line:#242424;--field:#0d0d0d;--btn:#242424}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);font:12.5px "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;user-select:none;-webkit-user-select:none;cursor:default}
+svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+
+#top{height:36px;display:flex;align-items:flex-end}
+#strip{display:flex;align-items:flex-end;height:36px;padding-left:8px;min-width:0;flex:0 1 auto;overflow:hidden}
+.tab{position:relative;flex:0 1 210px;min-width:34px;height:30px;display:flex;align-items:center;gap:8px;padding:0 6px 0 11px;border-radius:9px 9px 0 0;color:var(--dim);transition:background .12s,color .12s}
+.tab:hover{background:var(--hover);color:#c4c4c4}
+.tab.on{background:var(--bar);color:var(--fg);z-index:1}
+.tab:not(.on):not(:hover)+.tab:not(.on):not(:hover)::before{content:"";position:absolute;left:0;top:9px;height:12px;border-left:1px solid #262626}
+.tab.drag{opacity:.55}
+.fav{width:16px;height:16px;border-radius:3px;flex:none;object-fit:contain}
+.dot{width:16px;height:16px;flex:none;display:grid;place-items:center}
+.dot::after{content:"";width:6px;height:6px;border-radius:50%;background:#5a5a5a}
+.spin{width:13px;height:13px;flex:none;margin:1.5px;border:1.6px solid #3a3a3a;border-top-color:#f0f0f0;border-radius:50%;animation:r .75s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}
+.ttl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 18px),transparent)}
+.snd{color:var(--dim);border-radius:5px;padding:1px}
+.snd:hover{color:var(--fg);background:#2a2a2a}
+.snd svg{width:14px;height:14px}
+.x{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;color:var(--dim);opacity:0;flex:none}
+.tab:hover .x,.tab.on .x{opacity:1}
+.x:hover{background:#2b2b2b;color:var(--fg)}
+.x svg{width:12px;height:12px;stroke-width:1.7}
+.tab.narrow{padding:0;justify-content:center}
+.tab.narrow .ttl,.tab.narrow .x{display:none}
+.tab.narrow.on .x{display:grid;position:static}
+.tab.narrow.on .fav,.tab.narrow.on .spin,.tab.narrow.on .dot{display:none}
+#plus{width:28px;height:28px;margin:0 0 2px 4px;border-radius:8px;display:grid;place-items:center;color:var(--dim);flex:none}
+#plus:hover{background:#1a1a1a;color:var(--fg)}
+#drag{flex:1;height:100%;min-width:40px}
+.win{width:46px;height:36px;display:grid;place-items:center;color:#c8c8c8;flex:none}
+.win:hover{background:#1c1c1c;color:#fff}
+#wclose:hover{background:#e8e8e8;color:#000}
+.win svg{width:14px;height:14px;stroke-width:1.2}
+
+#tool{height:40px;background:var(--bar);display:flex;align-items:center;gap:2px;padding:0 6px;position:relative}
+#tool::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+#prog{position:absolute;left:0;bottom:0;height:1px;width:0;background:#f2f2f2;z-index:1;opacity:0;transition:opacity .3s}
+#prog.on{opacity:1;animation:p 2.2s cubic-bezier(.1,.6,.3,1) forwards}
+@keyframes p{from{width:0}to{width:85%}}
+.btn{width:32px;height:30px;border-radius:8px;display:grid;place-items:center;color:#d2d2d2;flex:none;position:relative}
+.btn:hover{background:var(--btn);color:#fff}
+.btn.off{color:#4a4a4a;pointer-events:none}
+#addr{flex:1;min-width:0;height:30px;margin:0 6px;background:var(--field);border:1px solid #1d1d1d;border-radius:9px;display:flex;align-items:center;padding:0 6px 0 11px;gap:8px;position:relative}
+#addr:hover{border-color:#2a2a2a}
+#addr.focus{border-color:#4a4a4a;background:#090909}
+#lock{color:var(--mut)}
+#lock svg{width:14px;height:14px}
+#url{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--fg);font:13px "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;caret-color:#fff}
+#url::placeholder{color:var(--mut)}
+#url::selection{background:#ededed;color:#000}
+#pretty{position:absolute;left:33px;right:40px;top:0;bottom:0;display:flex;align-items:center;white-space:nowrap;overflow:hidden;pointer-events:none;font-size:13px;color:var(--mut)}
+#pretty b{font-weight:400;color:var(--fg)}
+#addr.focus #pretty,#addr.empty #pretty{display:none}
+#addr:not(.focus):not(.empty) #url{color:transparent}
+#star{width:26px;height:24px;border-radius:7px;display:grid;place-items:center;color:var(--mut)}
+#star:hover{background:#1f1f1f;color:var(--fg)}
+#star.on{color:var(--fg)}
+#star.on svg{fill:currentColor}
+#zoom{font-size:11px;color:var(--dim);padding:2px 7px;border-radius:6px;border:1px solid #2a2a2a;display:none}
+#zoom.on{display:block}
+#shield .n{position:absolute;right:1px;bottom:2px;min-width:14px;height:13px;padding:0 3px;border-radius:7px;background:#ededed;color:#000;font-size:9px;font-weight:600;line-height:13px;text-align:center;display:none}
+#shield.has .n{display:block}
+#shield.dis{color:#4a4a4a}
+#shield.dis .n{display:none}
+#pw{display:none;align-items:center;gap:6px;height:28px;padding:0 4px 0 10px;border-radius:8px;background:#ededed;color:#000;margin-right:4px;white-space:nowrap;animation:in .2s}
+#pw.on{display:flex}
+#pw span{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+#pw button{border:0;font:inherit;height:22px;padding:0 10px;border-radius:6px;background:#000;color:#fff;cursor:pointer}
+#pw button.no{background:transparent;color:#000}
+#pw button.no:hover{background:#d6d6d6}
+@keyframes in{from{opacity:0;transform:translateY(-3px)}}
+#bar{height:32px;background:var(--bar);display:none;align-items:center;gap:1px;padding:0 8px 4px;position:relative;overflow:hidden}
+#bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+body.bar #bar{display:flex}
+body.bar #tool::after{display:none}
+.bm{height:26px;display:flex;align-items:center;gap:7px;padding:0 8px;border-radius:7px;color:#cfcfcf;flex:none;max-width:190px}
+.bm:hover{background:#262626;color:#fff}
+.bm img{width:16px;height:16px;flex:none;border-radius:3px;object-fit:contain}
+.bm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bm.icon{padding:0 6px}
+.bm .fi{color:#9a9a9a}
+#bar .hint{color:var(--mut);padding:0 8px;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="top">
+  <div id="strip"></div>
+  <div id="plus" title="Новая вкладка (Ctrl+T)"><svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg></div>
+  <div id="drag"></div>
+  <div class="win" id="wmin"><svg viewBox="0 0 16 16"><path d="M3 8h10"/></svg></div>
+  <div class="win" id="wmax"><svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></svg></div>
+  <div class="win" id="wclose"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></div>
+</div>
+<div id="tool">
+  <div class="btn off" id="back" title="Назад (Alt+←)"><svg viewBox="0 0 16 16"><path d="M13 8H3M7 4L3 8l4 4"/></svg></div>
+  <div class="btn off" id="fwd" title="Вперёд (Alt+→)"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></div>
+  <div class="btn" id="reload" title="Обновить (F5)"><svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.6-3.7M13 3v3h-3"/></svg></div>
+  <div id="addr" class="empty">
+    <div id="lock"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.2"/><path d="M10.2 10.2L13.5 13.5"/></svg></div>
+    <input id="url" spellcheck="false" autocomplete="off" placeholder="Поиск или адрес">
+    <div id="pretty"></div>
+    <div id="zoom"></div>
+    <div id="star" title="Закладка (Ctrl+D)"><svg viewBox="0 0 16 16"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.77.68 3.93L8 11.2l-3.52 1.85.68-3.93L2.3 6.35l3.95-.55z"/></svg></div>
+  </div>
+  <div id="pw"><span></span><button class="yes">Сохранить</button><button class="no">Нет</button></div>
+  <div class="btn" id="shield" title="Блокировка рекламы"><svg viewBox="0 0 16 16"><path d="M8 2l5 2v4c0 3-2.2 5.2-5 6-2.8-.8-5-3-5-6V4z"/></svg><span class="n"></span></div>
+  <div class="btn" id="menu" title="Меню"><svg viewBox="0 0 16 16"><circle cx="3.5" cy="8" r=".6" fill="currentColor"/><circle cx="8" cy="8" r=".6" fill="currentColor"/><circle cx="12.5" cy="8" r=".6" fill="currentColor"/></svg></div>
+  <div id="prog"></div>
+</div>
+<div id="bar"></div>
+<script>
+const $ = s => document.querySelector(s);
+const post = m => chrome.webview.postMessage(m);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const I = {
+  x: '<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+  snd: '<svg viewBox="0 0 16 16"><path d="M2.5 6h2.5l3.5-3v10l-3.5-3H2.5zM11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.8a6 6 0 0 1 0 8.4"/></svg>',
+  mute: '<svg viewBox="0 0 16 16"><path d="M2.5 6h2.5l3.5-3v10l-3.5-3H2.5zM11 6l3.5 4M14.5 6L11 10"/></svg>',
+  max: '<svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></svg>',
+  rest: '<svg viewBox="0 0 16 16"><rect x="3.5" y="5.5" width="7" height="7" rx="1"/><path d="M5.5 5.5V4.5a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-1"/></svg>',
+  reload: '<svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.6-3.7M13 3v3h-3"/></svg>',
+  stop: '<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+  search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.2"/><path d="M10.2 10.2L13.5 13.5"/></svg>',
+  lock: '<svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7"/></svg>',
+  warn: '<svg viewBox="0 0 16 16"><path d="M8 2.5l6 11H2zM8 7v3M8 11.8v.1"/></svg>',
+};
+
+let S = { tabs: [], active: 0, url: '' };
+let editing = false, sug = [], sel = -1, typed = '', auto = null, lastTabsSig = '';
+const url = $('#url'), addr = $('#addr');
+
+// ---------------- вкладки
+function renderTabs() {
+  const sig = JSON.stringify([S.tabs, S.active]);
+  if (sig === lastTabsSig) return;
+  lastTabsSig = sig;
+  const strip = $('#strip');
+  const avail = document.body.clientWidth - 8 - 32 - 40 - 138;
+  const w = S.tabs.length ? Math.min(210, avail / S.tabs.length) : 210;
+  strip.innerHTML = S.tabs.map(t => {
+    const icon = t.loading ? '<div class="spin"></div>'
+      : t.fav ? `<img class="fav" src="${esc(t.fav)}" onerror="this.outerHTML='<div class=dot></div>'">`
+      : '<div class="dot"></div>';
+    const snd = t.audio || t.muted ? `<div class="snd" data-mute="${t.id}" title="${t.muted ? 'Включить звук' : 'Выключить звук'}">${t.muted ? I.mute : I.snd}</div>` : '';
+    return `<div class="tab${t.id === S.active ? ' on' : ''}${drag && drag.moved && drag.id === t.id ? ' drag' : ''}${w < 72 ? ' narrow' : ''}" data-id="${t.id}" title="${esc(t.title)}">${icon}<div class="ttl">${esc(t.title)}</div>${snd}<div class="x" data-close="${t.id}">${I.x}</div></div>`;
+  }).join('');
+}
+
+let drag = null;
+$('#strip').addEventListener('pointerdown', e => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  const id = +tab.dataset.id;
+  if (e.button === 1) { e.preventDefault(); post({ t: 'close', id }); return; }
+  if (e.button !== 0) return;
+  if (e.target.closest('[data-close]')) { post({ t: 'close', id }); return; }
+  if (e.target.closest('[data-mute]')) { post({ t: 'mute', id }); return; }
+  post({ t: 'select', id });
+  drag = { id, x: e.clientX, moved: false };
+  $('#strip').setPointerCapture(e.pointerId);
+});
+$('#strip').addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!drag.moved && Math.abs(e.clientX - drag.x) < 6) return;
+  drag.moved = true;
+  const el = document.querySelector(`.tab[data-id="${drag.id}"]`);
+  if (!el) return;
+  el.classList.add('drag');
+  const tabs = [...document.querySelectorAll('.tab')];
+  let to = tabs.findIndex(t => { const r = t.getBoundingClientRect(); return e.clientX < r.left + r.width / 2; });
+  if (to < 0) to = tabs.length;
+  const from = tabs.indexOf(el);
+  if (to > from) to--;
+  if (to !== from) { post({ t: 'move', id: drag.id, to }); }
+});
+$('#strip').addEventListener('pointerup', () => { drag = null; document.querySelectorAll('.tab.drag').forEach(t => t.classList.remove('drag')); });
+$('#strip').addEventListener('auxclick', e => e.preventDefault());
+$('#plus').onclick = () => post({ t: 'cmd', c: 'newtab' });
+
+// перетаскивание окна за пустое место
+for (const el of [$('#drag'), $('#top')]) {
+  el.addEventListener('mousedown', e => {
+    if (e.button !== 0 || (e.target !== $('#drag') && e.target !== $('#top') && e.target !== $('#strip'))) return;
+    if (e.detail === 2) { post({ t: 'max' }); return; }
+    post({ t: 'drag' });
+  });
+}
+$('#wmin').onclick = () => post({ t: 'min' });
+$('#wmax').onclick = () => post({ t: 'max' });
+$('#wclose').onclick = () => post({ t: 'cmd', c: 'quit' });
+
+// ---------------- кнопки
+$('#back').onclick = () => post({ t: 'cmd', c: 'back' });
+$('#fwd').onclick = () => post({ t: 'cmd', c: 'fwd' });
+$('#reload').onclick = () => post({ t: 'cmd', c: S.loading ? 'stop' : 'reload' });
+$('#star').onclick = () => post({ t: 'cmd', c: 'bookmark' });
+$('#shield').onmousedown = e => {
+  e.preventDefault();
+  const r = $('#shield').getBoundingClientRect();
+  post({ t: 'shieldpanel', x: r.right, y: r.bottom + 4 });
+};
+$('#zoom').onclick = () => post({ t: 'cmd', c: 'zoomreset' });
+$('#menu').onmousedown = e => {
+  e.preventDefault();
+  const r = $('#menu').getBoundingClientRect();
+  post({ t: 'menu', x: r.right, y: r.bottom + 4, w: r.width });
+};
+
+// ---------------- адресная строка
+function pretty(u) {
+  if (!u) return '';
+  const m = u.match(/^(https?:\/\/)(www\.)?([^\/?#]+)(.*)$/i);
+  if (!m) return esc(u);
+  const rest = m[4] === '/' ? '' : m[4];
+  return `<b>${esc(m[3])}</b>${esc(rest)}`;
+}
+function showUrl() {
+  if (editing) return;
+  url.value = S.url || '';
+  $('#pretty').innerHTML = pretty(S.url);
+  addr.classList.toggle('empty', !S.url);
+  const secure = /^https:/.test(S.url), plain = /^http:/.test(S.url);
+  $('#lock').innerHTML = secure ? I.lock : plain ? I.warn : I.search;
+  $('#lock').title = secure ? 'Защищённое соединение' : plain ? 'Соединение не защищено' : '';
+}
+url.addEventListener('focus', () => {
+  editing = true;
+  addr.classList.add('focus');
+  url.value = S.url || '';
+  requestAnimationFrame(() => url.select());
+});
+url.addEventListener('blur', () => {
+  editing = false;
+  addr.classList.remove('focus');
+  sel = -1; auto = null;
+  setTimeout(() => { if (!editing) post({ t: 'hidepop' }); }, 160);
+  showUrl();
+});
+url.addEventListener('input', e => {
+  typed = url.value;
+  sel = -1; auto = null;
+  const del = e.inputType && e.inputType.startsWith('delete');
+  url.dataset.del = del ? '1' : '';
+  const r = addr.getBoundingClientRect();
+  post({ t: 'sug', q: typed, x: r.left, y: r.bottom + 6, w: r.width });
+});
+url.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (!sug.length) return;
+    e.preventDefault();
+    sel = e.key === 'ArrowDown' ? Math.min(sug.length - 1, sel + 1) : Math.max(-1, sel - 1);
+    auto = null;
+    url.value = sel < 0 ? typed : (sug[sel].kind === 'search' ? sug[sel].title : sug[sel].url);
+    post({ t: 'sugsel', i: sel });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (sel >= 0 && sug[sel]) post({ t: 'go', url: sug[sel].url });
+    else if (auto && url.value.toLowerCase().startsWith(typed.toLowerCase())) post({ t: 'go', url: auto });
+    else post({ t: 'nav', text: url.value });
+    sug = []; sel = -1; auto = null;
+    post({ t: 'hidepop' });
+    url.blur();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    if (sug.length && url.value !== (S.url || '')) { url.value = S.url || ''; url.select(); post({ t: 'hidepop' }); sug = []; }
+    else { url.blur(); post({ t: 'focuspage' }); }
+  }
+});
+function onSug(m) {
+  if (!editing || m.q !== typed) return;
+  sug = m.items || [];
+  // автодополнение адреса прямо в строке
+  if (url.dataset.del || sel >= 0) return;
+  const f = sug[0];
+  if (f && f.kind !== 'search') {
+    const strip = f.url.replace(/^https?:\/\/(www\.)?/i, '');
+    if (strip.toLowerCase().startsWith(typed.toLowerCase()) && typed.length) {
+      const host = strip.split('/')[0];
+      const full = host.toLowerCase().startsWith(typed.toLowerCase()) && !typed.includes('/') ? host : strip;
+      url.value = typed + full.slice(typed.length);
+      url.setSelectionRange(typed.length, url.value.length);
+      auto = host === full ? f.url.match(/^https?:\/\/[^\/]+/i)[0] + '/' : f.url;
+    }
+  }
+}
+
+// ---------------- быстрый доступ
+const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
+const FOLDER = '<svg class="fi" viewBox="0 0 16 16"><path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 1.5h4.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/></svg>';
+let barItems = [];
+function renderBar(m) {
+  barItems = m.items || [];
+  document.body.classList.toggle('bar', !!m.on && barItems.length > 0);
+  $('#bar').innerHTML = barItems.map((b, i) => {
+    if (b.k === 'folder') return `<div class="bm" data-i="${i}" title="${esc(b.name)}">${FOLDER}<span>${esc(b.name)}</span></div>`;
+    const plain = !b.title || /^https?:\/\//i.test(b.title);
+    const ic = `<img src="https://icons.duckduckgo.com/ip3/${esc(host(b.url))}.ico" onerror="this.style.visibility='hidden'">`;
+    return `<div class="bm${plain ? ' icon' : ''}" data-i="${i}" title="${esc(b.title || b.url)}">${ic}${plain ? '' : `<span>${esc(b.title)}</span>`}</div>`;
+  }).join('');
+}
+$('#bar').addEventListener('mousedown', e => {
+  const el = e.target.closest('.bm');
+  if (!el) return;
+  e.preventDefault();
+  const b = barItems[+el.dataset.i], r = el.getBoundingClientRect();
+  if (b.k === 'folder') { if (e.button === 0) post({ t: 'folder', name: b.name, x: r.left, y: r.bottom + 2 }); return; }
+  if (e.button === 2) post({ t: 'barctx', id: b.id, url: b.url, x: e.clientX, y: e.clientY + 2 });
+  else if (e.button === 1 || e.ctrlKey) post({ t: 'opennew', url: b.url });
+  else if (e.button === 0) post({ t: 'go', url: b.url });
+});
+$('#bar').addEventListener('auxclick', e => e.preventDefault());
+
+// ---------------- пароль
+$('#pw .yes').onclick = () => { post({ t: 'pw', save: true }); $('#pw').classList.remove('on'); };
+$('#pw .no').onclick = () => { post({ t: 'pw', save: false }); $('#pw').classList.remove('on'); };
+
+// ---------------- состояние от браузера
+function render(m) {
+  S = m;
+  renderTabs();
+  showUrl();
+  $('#back').classList.toggle('off', !m.back);
+  $('#fwd').classList.toggle('off', !m.fwd);
+  $('#reload').innerHTML = m.loading ? I.stop : I.reload;
+  $('#prog').classList.toggle('on', !!m.loading);
+  $('#star').classList.toggle('on', !!m.bm);
+  $('#star').style.display = m.internal || !m.url ? 'none' : '';
+  const sh = $('#shield');
+  sh.classList.toggle('has', m.blocked > 0);
+  sh.classList.toggle('dis', !m.shield);
+  sh.querySelector('.n').textContent = m.blocked > 99 ? '99+' : m.blocked;
+  sh.title = !m.adblock ? 'Блокировка выключена в настройках' : m.shield ? `Заблокировано на странице: ${m.blocked}. Нажмите, чтобы отключить для сайта` : 'Блокировка отключена для этого сайта';
+  const z = $('#zoom');
+  z.classList.toggle('on', Math.abs(m.zoom - 1) > 0.01);
+  z.textContent = Math.round(m.zoom * 100) + '%';
+  $('#wmax').innerHTML = m.max ? I.rest : I.max;
+}
+chrome.webview.addEventListener('message', e => {
+  const m = e.data;
+  if (m.t === 'state') render(m);
+  else if (m.t === 'bar') renderBar(m);
+  else if (m.t === 'sug') onSug(m);
+  else if (m.t === 'focusaddr') { url.focus(); if (m.text) { url.value = m.text; } url.select(); }
+  else if (m.t === 'blur') { if (editing) url.blur(); }
+  else if (m.t === 'pw') { $('#pw span').textContent = `Сохранить пароль${m.user ? ' ' + m.user : ''} для ${m.host}?`; $('#pw').classList.add('on'); }
+});
+addEventListener('resize', () => { lastTabsSig = ''; renderTabs(); });
+addEventListener('contextmenu', e => { if (e.target !== url) e.preventDefault(); });
+post({ t: 'ready' });
+</script>
+</body>
+</html>
