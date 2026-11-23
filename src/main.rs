@@ -696,14 +696,12 @@ impl App {
             let (css, js, gh, exceptions) = blocker::cosmetic(engine, &uri);
             ex = exceptions;
             let host = host_of(&uri);
-            let yt = if host == "youtube.com" || host.ends_with(".youtube.com") { YT_JS } else { "" };
             script = Some(format!(
-                "(function(){{if(window.top!==window)return;var H={};var h=location.hostname.replace(/^www\\./,'');if(h!==H)return;window.__monoCos={{gh:{}}};try{{var s=new CSSStyleSheet();s.replaceSync({});document.adoptedStyleSheets=[...document.adoptedStyleSheets,s];}}catch(e){{}}try{{{}}}catch(e){{}}try{{{}}}catch(e){{}}}})();",
+                "(function(){{if(window.top!==window)return;var H={};var h=location.hostname.replace(/^www\\./,'');if(h!==H)return;window.__monoCos={{gh:{}}};try{{var s=new CSSStyleSheet();s.replaceSync({});document.adoptedStyleSheets=[...document.adoptedStyleSheets,s];}}catch(e){{}}try{{{}}}catch(e){{}}}})();",
                 wv::js_str(&host),
                 gh,
                 wv::js_str(&css),
                 js,
-                yt
             ));
         }
         let Some(t) = self.tabs.iter_mut().find(|t| t.id == id) else { return };
@@ -1589,6 +1587,10 @@ fn setup_content(view: &View, id: u64) {
     let mut tok = 0i64;
     unsafe {
         let _ = wv.AddScriptToExecuteOnDocumentCreated(&h(CONTENT_JS), None);
+        // YouTube — всегда и сразу при создании вкладки, без гонки с началом перехода и загрузкой движка
+        if std::env::var("MONO_NOFILTER").is_err() {
+            let _ = wv.AddScriptToExecuteOnDocumentCreated(&h(YT_JS), None);
+        }
         if let (Ok(js), true) = (std::env::var("MONO_EVAL"), std::env::var("MONO_TEST").is_ok()) {
             let _ = wv.AddScriptToExecuteOnDocumentCreated(&h(&js), None);
         }
